@@ -1,0 +1,62 @@
+# Releases, with release-please.
+#
+# Every push to main updates a "chore: release x.y.z" pull request from the
+# Conventional Commits since the last release: feat raises the minor version,
+# fix the patch, and a "!" or BREAKING CHANGE the major. It holds the next
+# CHANGELOG.md entry and the version in PITarget.toc. Merging it tags the
+# commit and publishes a GitHub release, and this workflow then attaches a
+# zip of the addon folder, ready to unpack into Interface/AddOns.
+#
+# The repository must allow GitHub Actions to create pull requests (Settings →
+# Actions → General).
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.release-please.outputs.tag }}
+      VERSION: ${{ needs.release-please.outputs.version }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Zip the addon
+        run: zip -r "PITarget-${VERSION}.zip" PITarget
+
+      - name: Attach it to the release
+        run: gh release upload "${TAG}" "PITarget-${VERSION}.zip" --clobber
