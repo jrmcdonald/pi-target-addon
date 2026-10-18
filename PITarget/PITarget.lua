@@ -1,5 +1,6 @@
 -- PI Target
 local ADDON_NAME = ...
+-- Priests only: for other classes the frame stays hidden and /pit only says so.
 -- /pit set [unit] : point the PI macro at your target, or another unit such as
 --                   mouseover for click-cast bindings on unit frames (out of combat)
 -- /pit lock | unlock | reset
@@ -178,6 +179,8 @@ end
 ------------------------------------------------------------------------
 -- Position, events, slash
 ------------------------------------------------------------------------
+local isPriest -- set on ADDON_LOADED
+
 local function SavePosition()
     PITargetDB = PITargetDB or {}
     local point, _, relPoint, x, y = f:GetPoint()
@@ -206,6 +209,13 @@ f:RegisterEvent("PLAYER_REGEN_ENABLED")
 f:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" then
         if arg1 ~= ADDON_NAME then return end
+        self:UnregisterEvent("ADDON_LOADED")
+        isPriest = select(2, UnitClass("player")) == "PRIEST"
+        if not isPriest then
+            self:UnregisterAllEvents()
+            self:Hide()
+            return
+        end
         PITargetDB = PITargetDB or {}
         local p = PITargetDB.pos
         if p then
@@ -216,7 +226,6 @@ f:SetScript("OnEvent", function(self, event, arg1)
         end
         self:EnableMouse(not PITargetDB.locked)
         ApplyFont()
-        self:UnregisterEvent("ADDON_LOADED")
         return
     end
     if event == "PLAYER_ENTERING_WORLD" then ApplyFont() end -- pick up LSM fonts registered late
@@ -225,6 +234,7 @@ end)
 
 SLASH_PITARGET1 = "/pit"
 SlashCmdList.PITARGET = function(msg)
+    if not isPriest then return print("PI Target: only for priests") end
     local cmd, arg = strtrim((msg or ""):lower()):match("^(%S*)%s*(.-)$")
     if cmd == "set" then
         SetPITarget(arg ~= "" and arg or "target")

@@ -4,7 +4,8 @@ A small World of Warcraft addon for Priests that sets and shows your Power
 Infusion target.
 
 It keeps a macro called `PI` pointed at one player, and shows who that is in a
-small frame, coloured by their class (red if they've left the group).
+small frame, coloured by their class (red if they've left the group). On other
+classes it stays hidden.
 
 ```
 #showtooltip
