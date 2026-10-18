@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.3.0...v1.4.0) (2026-10-18)
+
+
+### Features
+
+* set the PI target from a click-cast binding on unit frames ([25cf3c2](https://github.com/jrmcdonald/pi-target-addon/commit/25cf3c2a67fb94277a99fab6774df383fe4dc34c))
+* set the PI target from a click-cast binding on unit frames ([b30ed39](https://github.com/jrmcdonald/pi-target-addon/commit/b30ed39dd76dd57a441298af3a38409f28c8f01b))
+
 ## 1.3.0 (2026-10-16)
 
 
