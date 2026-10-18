@@ -1,6 +1,7 @@
 -- PI Target
 local ADDON_NAME = ...
--- /pit set  : point the PI macro at your current target (out of combat)
+-- /pit set [unit] : point the PI macro at your target, or another unit such as
+--                   mouseover for click-cast bindings on unit frames (out of combat)
 -- /pit lock | unlock | reset
 
 local MACRO_NAME = "PI"
@@ -148,15 +149,18 @@ local function BuildBody(name)
     return body
 end
 
-local function SetPITarget()
+-- unit is "target" from /pit set, or e.g. "mouseover" from a click-cast binding
+local function SetPITarget(unit)
     if InCombatLockdown() then return Flash("Can't change PI in combat") end
 
     local name = "player"
-    if UnitExists("target") then
-        if not (UnitIsPlayer("target") and UnitIsFriend("player", "target")) then
-            return Flash("Target a friendly player")
+    if UnitExists(unit) then
+        if not (UnitIsPlayer(unit) and UnitIsFriend("player", unit)) then
+            return Flash("Pick a friendly player")
         end
-        name = GetUnitName("target", true) -- includes realm for cross-realm players
+        name = GetUnitName(unit, true) -- includes realm for cross-realm players
+    elseif unit ~= "target" then
+        return Flash("No " .. unit) -- only a bare /pit set falls back to you
     end
 
     local body = BuildBody(name)
@@ -221,23 +225,23 @@ end)
 
 SLASH_PITARGET1 = "/pit"
 SlashCmdList.PITARGET = function(msg)
-    msg = strtrim((msg or ""):lower())
-    if msg == "set" then
-        SetPITarget()
-    elseif msg == "lock" or msg == "unlock" then
+    local cmd, arg = strtrim((msg or ""):lower()):match("^(%S*)%s*(.-)$")
+    if cmd == "set" then
+        SetPITarget(arg ~= "" and arg or "target")
+    elseif cmd == "lock" or cmd == "unlock" then
         PITargetDB = PITargetDB or {}
-        PITargetDB.locked = (msg == "lock")
+        PITargetDB.locked = (cmd == "lock")
         f:EnableMouse(not PITargetDB.locked) -- locked = click-through
-        print("PI Target: frame " .. msg .. "ed")
-    elseif msg == "reset" then
+        print("PI Target: frame " .. cmd .. "ed")
+    elseif cmd == "reset" then
         ResetPosition()
         f:Show()
-    elseif msg == "debug" then
+    elseif cmd == "debug" then
         local pt, _, _, x, y = f:GetPoint()
         print(("PI Target: loaded as %s | shown=%s visible=%s | point=%s %s,%s | macro target=%s"):format(
             tostring(ADDON_NAME), tostring(f:IsShown()), tostring(f:IsVisible()),
             tostring(pt), tostring(x), tostring(y), tostring(GetPITarget())))
     else
-        print("PI Target: /pit set | lock | unlock | reset | debug")
+        print("PI Target: /pit set [unit] | lock | unlock | reset | debug")
     end
 end
