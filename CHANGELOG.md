@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.6.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.5.0...v1.6.0) (2026-10-18)
+
+
+### Features
+
+* only show the addon for priests ([d8d7851](https://github.com/jrmcdonald/pi-target-addon/commit/d8d7851d5dbc9145b756f5e324602dd3adb60636))
+* right-click the frame to clear the PI target ([2692f07](https://github.com/jrmcdonald/pi-target-addon/commit/2692f07588e824a846aaef259ac67207fa7e3e73))
+
+
+### Bug Fixes
+
+* put the PI name back 5 seconds after a warning in combat ([0494e33](https://github.com/jrmcdonald/pi-target-addon/commit/0494e338daa787a4e9599242a5787623de793163))
+
 ## [1.5.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.4.0...v1.5.0) (2026-10-18)
 
 
