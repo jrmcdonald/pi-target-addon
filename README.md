@@ -14,8 +14,12 @@ small frame, coloured by their class (red if they've left the group).
 
 ## Install
 
-Download `PITarget-x.y.z.zip` from the latest release and unzip it into
-`World of Warcraft/_retail_/Interface/AddOns`, so you end up with
+With [WowUp](https://wowup.io), go to **Get Addons → Install from URL** and
+paste `https://github.com/jrmcdonald/pi-target-addon`. WowUp then keeps it
+updated from this repository's releases.
+
+Or by hand: download `PITarget-x.y.z.zip` from the latest release and unzip it
+into `World of Warcraft/_retail_/Interface/AddOns`, so you end up with
 `AddOns/PITarget/PITarget.toc`.
 
 ## Use
@@ -50,4 +54,5 @@ PI by clicking a unit frame:
 [release-please](https://github.com/googleapis/release-please) reads commit
 messages, so they follow [Conventional Commits](https://www.conventionalcommits.org)
 (`feat:`, `fix:`, `chore:` …). Merging its "chore: release x.y.z" pull request
-bumps the version in `PITarget.toc`, tags the release and attaches the zip.
+bumps the version in `PITarget.toc`, tags the release and attaches the zip,
+with a `release.json` that tells WowUp which zip is for retail.
