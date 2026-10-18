@@ -3,7 +3,8 @@ local ADDON_NAME = ...
 -- Priests only: for other classes the frame stays hidden and /pit only says so.
 -- /pit set [unit] : point the PI macro at your target, or another unit such as
 --                   mouseover for click-cast bindings on unit frames (out of combat)
--- /pit lock | unlock | reset
+-- /pit clear | lock | unlock | reset
+-- Right-click the frame to clear the PI target (out of combat)
 
 local MACRO_NAME = "PI"
 local SPELL      = "Power Infusion"
@@ -144,8 +145,10 @@ end
 ------------------------------------------------------------------------
 -- Writing the macro
 ------------------------------------------------------------------------
+-- name nil = no PI target: mouseover, else your target or you
 local function BuildBody(name)
-    local body = "#showtooltip\n/cast [@mouseover,help,nodead][@" .. name .. ",exists,nodead][] " .. SPELL
+    local named = name and ("[@" .. name .. ",exists,nodead]") or ""
+    local body = "#showtooltip\n/cast [@mouseover,help,nodead]" .. named .. "[] " .. SPELL
     if TRINKET and TRINKET ~= "" then body = body .. "\n" .. TRINKET end
     return body
 end
@@ -176,6 +179,15 @@ local function SetPITarget(unit)
     Update()
 end
 
+-- Rewrite the macro without a named target, rather than deleting it, so it
+-- stays on your bars.
+local function ClearPITarget()
+    if InCombatLockdown() then return Flash("Can't change PI in combat") end
+    local idx = GetMacroIndexByName(MACRO_NAME)
+    if idx and idx > 0 then EditMacro(idx, nil, nil, BuildBody(nil)) end
+    Update()
+end
+
 ------------------------------------------------------------------------
 -- Position, events, slash
 ------------------------------------------------------------------------
@@ -199,6 +211,9 @@ end)
 f:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     SavePosition()
+end)
+f:SetScript("OnMouseUp", function(_, button)
+    if button == "RightButton" then ClearPITarget() end
 end)
 
 f:RegisterEvent("ADDON_LOADED")
@@ -238,6 +253,8 @@ SlashCmdList.PITARGET = function(msg)
     local cmd, arg = strtrim((msg or ""):lower()):match("^(%S*)%s*(.-)$")
     if cmd == "set" then
         SetPITarget(arg ~= "" and arg or "target")
+    elseif cmd == "clear" then
+        ClearPITarget()
     elseif cmd == "lock" or cmd == "unlock" then
         PITargetDB = PITargetDB or {}
         PITargetDB.locked = (cmd == "lock")
@@ -252,6 +269,6 @@ SlashCmdList.PITARGET = function(msg)
             tostring(ADDON_NAME), tostring(f:IsShown()), tostring(f:IsVisible()),
             tostring(pt), tostring(x), tostring(y), tostring(GetPITarget())))
     else
-        print("PI Target: /pit set [unit] | lock | unlock | reset | debug")
+        print("PI Target: /pit set [unit] | clear | lock | unlock | reset | debug")
     end
 end
