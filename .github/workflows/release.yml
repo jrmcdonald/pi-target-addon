@@ -5,7 +5,10 @@
 # fix the patch, and a "!" or BREAKING CHANGE the major. It holds the next
 # CHANGELOG.md entry and the version in PITarget.toc. Merging it tags the
 # commit and publishes a GitHub release, and this workflow then attaches a
-# zip of the addon folder, ready to unpack into Interface/AddOns.
+# zip of the addon folder, ready to unpack into Interface/AddOns, and a
+# release.json describing it. That is the BigWigs packager's metadata file,
+# which WowUp reads to pick the zip for each game flavour when the addon is
+# installed from this repository's URL.
 #
 # The repository must allow GitHub Actions to create pull requests (Settings →
 # Actions → General).
@@ -58,5 +61,19 @@ jobs:
       - name: Zip the addon
         run: zip -r "PITarget-${VERSION}.zip" PITarget
 
-      - name: Attach it to the release
-        run: gh release upload "${TAG}" "PITarget-${VERSION}.zip" --clobber
+      - name: Describe it for WowUp
+        run: |
+          interface=$(sed -n 's/^## Interface: *//p' PITarget/PITarget.toc | tr -d '\r ' | tr ',' '\n' | sort -n | tail -1)
+          jq -n --arg tag "${TAG}" --arg file "PITarget-${VERSION}.zip" --argjson interface "${interface}" '{
+            releases: [{
+              name: "PITarget",
+              version: $tag,
+              filename: $file,
+              nolib: false,
+              metadata: [{ flavor: "mainline", interface: $interface }]
+            }]
+          }' > release.json
+          cat release.json
+
+      - name: Attach them to the release
+        run: gh release upload "${TAG}" "PITarget-${VERSION}.zip" release.json --clobber
