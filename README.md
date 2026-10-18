@@ -4,7 +4,8 @@ A small World of Warcraft addon for Priests that sets and shows your Power
 Infusion target.
 
 It keeps a macro called `PI` pointed at one player, and shows who that is in a
-small frame, coloured by their class (red if they've left the group).
+small frame, coloured by their class (red if they've left the group). On other
+classes it stays hidden.
 
 ```
 #showtooltip
@@ -28,15 +29,18 @@ into `World of Warcraft/_retail_/Interface/AddOns`, so you end up with
 | ----------------- | ----------------------------------------------------------------------------------------------------------- |
 | `/pit set`        | Point the macro at your current target (a friendly player), or yourself with no target. Out of combat only. |
 | `/pit set <unit>` | Point the macro at another unit, such as `mouseover` or `focus`. Out of combat only.                        |
+| `/pit clear`      | Clear the macro's target, so it casts on your mouseover, target or yourself. Out of combat only.            |
 | `/pit lock`       | Lock the frame in place and make it click-through.                                                          |
 | `/pit unlock`     | Let the frame be dragged again.                                                                             |
 | `/pit reset`      | Move the frame back to the middle of the screen.                                                            |
 | `/pit debug`      | Print the frame's state and the macro's target.                                                             |
 
-The first `/pit set` creates the macro if it doesn't exist; drag it to your
-bars from `/macro`. The look (size, colours, font) and the trinket line are
-set at the top of `PITarget.lua`. It uses a LibSharedMedia font if you name
-one there, and is styled to sit alongside EllesmereUI.
+Right-clicking the frame does the same as `/pit clear` (not while it's
+locked, since a locked frame is click-through). The first `/pit set` creates
+the macro if it doesn't exist; drag it to your bars from `/macro`. The look
+(size, colours, font) and the trinket line are set at the top of
+`PITarget.lua`. It uses a LibSharedMedia font if you name one there, and is
+styled to sit alongside EllesmereUI.
 
 ## Click casting
 

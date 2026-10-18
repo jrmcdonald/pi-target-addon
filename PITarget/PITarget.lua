@@ -1,8 +1,10 @@
 -- PI Target
 local ADDON_NAME = ...
+-- Priests only: for other classes the frame stays hidden and /pit only says so.
 -- /pit set [unit] : point the PI macro at your target, or another unit such as
 --                   mouseover for click-cast bindings on unit frames (out of combat)
--- /pit lock | unlock | reset
+-- /pit clear | lock | unlock | reset
+-- Right-click the frame to clear the PI target (out of combat)
 
 local MACRO_NAME = "PI"
 local SPELL      = "Power Infusion"
@@ -116,35 +118,47 @@ local function FindUnit(name)
     end
 end
 
+local last -- what Update last showed, put back after a Flash in combat
+
+local function ShowName(msg, r, g, b)
+    last = { msg, r, g, b }
+    Show(msg, r, g, b)
+end
+
 local function Update()
     local name = GetPITarget()
     if not name then
-        Show("PI: not set", unpack(STYLE.dim))
+        ShowName("PI: not set", unpack(STYLE.dim))
         return
     end
-    if InCombatLockdown() then return end -- keep what's shown; group lookups can be restricted mid-fight
+    if InCombatLockdown() then -- group lookups can be restricted mid-fight, so reuse what was shown
+        if last then Show(unpack(last)) end
+        return
+    end
 
     local unit = FindUnit(name)
     local label = (name == "player") and UnitName("player") or name:match("^[^-]+")
     if unit then
         local _, class = UnitClass(unit)
         local c = class and RAID_CLASS_COLORS[class]
-        if c then Show(label, c.r, c.g, c.b) else Show(label, 1, 1, 1) end
+        if c then ShowName(label, c.r, c.g, c.b) else ShowName(label, 1, 1, 1) end
     else
-        Show(label .. "  (not in group)", unpack(STYLE.bad))
+        ShowName(label .. "  (not in group)", unpack(STYLE.bad))
     end
 end
 
 local function Flash(msg)
     Show(msg, unpack(STYLE.bad))
-    C_Timer.After(2, Update)
+    C_Timer.After(5, Update)
 end
 
 ------------------------------------------------------------------------
 -- Writing the macro
 ------------------------------------------------------------------------
+-- name nil = no PI target: mouseover, else your target or you
 local function BuildBody(name)
-    local body = "#showtooltip\n/cast [@mouseover,help,nodead][@" .. name .. ",exists,nodead][] " .. SPELL
+    local named = name and ("[@" .. name .. ",exists,nodead]") or ""
+    local body = "#showtooltip\n/cast [@mouseover,help,nodead]" .. named .. "[] " .. SPELL
     if TRINKET and TRINKET ~= "" then body = body .. "\n" .. TRINKET end
     return body
 end
@@ -175,9 +189,20 @@ local function SetPITarget(unit)
     Update()
 end
 
+-- Rewrite the macro without a named target, rather than deleting it, so it
+-- stays on your bars.
+local function ClearPITarget()
+    if InCombatLockdown() then return Flash("Can't change PI in combat") end
+    local idx = GetMacroIndexByName(MACRO_NAME)
+    if idx and idx > 0 then EditMacro(idx, nil, nil, BuildBody(nil)) end
+    Update()
+end
+
 ------------------------------------------------------------------------
 -- Position, events, slash
 ------------------------------------------------------------------------
+local isPriest -- set on ADDON_LOADED
+
 local function SavePosition()
     PITargetDB = PITargetDB or {}
     local point, _, relPoint, x, y = f:GetPoint()
@@ -197,6 +222,9 @@ f:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     SavePosition()
 end)
+f:SetScript("OnMouseUp", function(_, button)
+    if button == "RightButton" then ClearPITarget() end
+end)
 
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -206,6 +234,13 @@ f:RegisterEvent("PLAYER_REGEN_ENABLED")
 f:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" then
         if arg1 ~= ADDON_NAME then return end
+        self:UnregisterEvent("ADDON_LOADED")
+        isPriest = select(2, UnitClass("player")) == "PRIEST"
+        if not isPriest then
+            self:UnregisterAllEvents()
+            self:Hide()
+            return
+        end
         PITargetDB = PITargetDB or {}
         local p = PITargetDB.pos
         if p then
@@ -216,7 +251,6 @@ f:SetScript("OnEvent", function(self, event, arg1)
         end
         self:EnableMouse(not PITargetDB.locked)
         ApplyFont()
-        self:UnregisterEvent("ADDON_LOADED")
         return
     end
     if event == "PLAYER_ENTERING_WORLD" then ApplyFont() end -- pick up LSM fonts registered late
@@ -225,9 +259,12 @@ end)
 
 SLASH_PITARGET1 = "/pit"
 SlashCmdList.PITARGET = function(msg)
+    if not isPriest then return print("PI Target: only for priests") end
     local cmd, arg = strtrim((msg or ""):lower()):match("^(%S*)%s*(.-)$")
     if cmd == "set" then
         SetPITarget(arg ~= "" and arg or "target")
+    elseif cmd == "clear" then
+        ClearPITarget()
     elseif cmd == "lock" or cmd == "unlock" then
         PITargetDB = PITargetDB or {}
         PITargetDB.locked = (cmd == "lock")
@@ -242,6 +279,6 @@ SlashCmdList.PITARGET = function(msg)
             tostring(ADDON_NAME), tostring(f:IsShown()), tostring(f:IsVisible()),
             tostring(pt), tostring(x), tostring(y), tostring(GetPITarget())))
     else
-        print("PI Target: /pit set [unit] | lock | unlock | reset | debug")
+        print("PI Target: /pit set [unit] | clear | lock | unlock | reset | debug")
     end
 end
