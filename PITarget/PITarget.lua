@@ -118,28 +118,38 @@ local function FindUnit(name)
     end
 end
 
+local last -- what Update last showed, put back after a Flash in combat
+
+local function ShowName(msg, r, g, b)
+    last = { msg, r, g, b }
+    Show(msg, r, g, b)
+end
+
 local function Update()
     local name = GetPITarget()
     if not name then
-        Show("PI: not set", unpack(STYLE.dim))
+        ShowName("PI: not set", unpack(STYLE.dim))
         return
     end
-    if InCombatLockdown() then return end -- keep what's shown; group lookups can be restricted mid-fight
+    if InCombatLockdown() then -- group lookups can be restricted mid-fight, so reuse what was shown
+        if last then Show(unpack(last)) end
+        return
+    end
 
     local unit = FindUnit(name)
     local label = (name == "player") and UnitName("player") or name:match("^[^-]+")
     if unit then
         local _, class = UnitClass(unit)
         local c = class and RAID_CLASS_COLORS[class]
-        if c then Show(label, c.r, c.g, c.b) else Show(label, 1, 1, 1) end
+        if c then ShowName(label, c.r, c.g, c.b) else ShowName(label, 1, 1, 1) end
     else
-        Show(label .. "  (not in group)", unpack(STYLE.bad))
+        ShowName(label .. "  (not in group)", unpack(STYLE.bad))
     end
 end
 
 local function Flash(msg)
     Show(msg, unpack(STYLE.bad))
-    C_Timer.After(2, Update)
+    C_Timer.After(5, Update)
 end
 
 ------------------------------------------------------------------------
