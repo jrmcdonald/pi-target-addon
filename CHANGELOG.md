@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.4.0...v1.5.0) (2026-10-18)
+
+
+### Features
+
+* attach a release.json so WowUp can install from GitHub ([1fb58bb](https://github.com/jrmcdonald/pi-target-addon/commit/1fb58bb1dddf129984883295ad4eca637958ebb7))
+* attach a release.json so WowUp can install from GitHub ([0c85d99](https://github.com/jrmcdonald/pi-target-addon/commit/0c85d99eb4edfd1203583872e296b99e805e62ab))
+
 ## [1.4.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.3.0...v1.4.0) (2026-10-18)
 
 
