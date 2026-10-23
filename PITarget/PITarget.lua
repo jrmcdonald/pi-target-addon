@@ -15,7 +15,7 @@ local TRINKET    = "/use 13"   -- delete or change if you don't want the trinket
 -- to sit alongside EllesmereUI frames. Tweak freely.
 ------------------------------------------------------------------------
 local STYLE = {
-    width     = 170,
+    width     = 200,
     height    = 24,
     bg        = { 0.05, 0.05, 0.05, 0.85 },
     border    = { 0, 0, 0, 1 },
