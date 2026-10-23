@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.6.0...v1.7.0) (2026-10-23)
+
+
+### Features
+
+* widen the frame to 200 ([037ae0e](https://github.com/jrmcdonald/pi-target-addon/commit/037ae0e9676775713a3dd6a29094459c1e247878))
+
 ## [1.6.0](https://github.com/jrmcdonald/pi-target-addon/compare/v1.5.0...v1.6.0) (2026-10-18)
 
 
